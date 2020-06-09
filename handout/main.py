@@ -1,22 +1,15 @@
 import pickle
-import dill
 
+from .classes import *
 from .games import *
+from .gui import *
 
 
-class Game:
-    def __init__(self):
+def main(parser, board):
+    player = Player(parser)
+    board = Board(lattices, positions, player)
+    guiShow(board, firstDisplay=True)
+    while board.player.location < len(positions):
+        guiThrowDice(board)
+
         pass
-
-
-class Board:
-    def __init__(self):
-        pass
-
-
-def main(parser):
-    pass
-
-
-def gui(parser):
-    pass
