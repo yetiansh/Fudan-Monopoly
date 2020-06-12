@@ -4,8 +4,10 @@ import random
 grades = ['freshman', 'sophomore', 'junior', 'senior']
 sites = []  # 设计好的地点
 chances = []  # 设计好的命运牌
-positions = []  # 设计好的位置
-lattices = []   # 设计好的格子
+initialPositions = [1]  # 设计好的位置
+positionsWithFinalExam = []
+initialLattices = []   # 设计好的格子
+latticesWithFinalExam = []
 remainedChances = chances
 
 
@@ -16,8 +18,10 @@ class Player:
         self.location = parser.initialLocation
         self.money = parser.initialMoney
         self.spirit = parser.initialSpirit
+        self.time = parser.initialTime
         self.knowledge = parser.initialKnowledge
         self.grade = grades[0]
+        self.record = []
 
     def __call__(self, parser):
         #   作为回调函数，调用时弹出一个界面显示玩家的属性、头像等信息，待完成
@@ -59,18 +63,6 @@ class Site(Lattice):
     def __call__(self):
         #   作为回调函数，调用时弹出一个界面显示地点的信息，待完成
         pass
-
-
-def drawCard(remainedCards=None):
-    #   用于抽卡的函数，在gui中被调用
-    if remainedCards is None:
-        remainedCards = remainedChances
-    if len(remainedCards) is 0:
-        remainedCards = chances
-
-    card = random.sample(remainedCards, 1)
-    remainedChances.remove(card)
-    return card
 
 
 class Chance(Lattice):
