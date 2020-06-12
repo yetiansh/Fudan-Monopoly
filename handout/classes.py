@@ -1,3 +1,4 @@
+import tkinter as tk
 import random
 
 grades = ['freshman', 'sophomore', 'junior', 'senior']
@@ -18,13 +19,10 @@ class Player:
         self.knowledge = parser.initialKnowledge
         self.grade = grades[0]
 
-    def throwDice(self):
-        results = [random.randint(1, 6), random.randint(1, 6)]
-        return results
-
-    def __call__(self):
+    def __call__(self, parser):
         #   作为回调函数，调用时弹出一个界面显示玩家的属性、头像等信息，待完成
-        pass
+        window = tk.Tk()
+        window.mainloop()
 
 
 class Lattice:

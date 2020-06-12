@@ -1,1 +1,1 @@
-from .main import guiShow
+from .gui import *
