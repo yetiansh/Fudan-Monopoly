@@ -1,9 +1,7 @@
-from .classes import *
-from .gui import guiShow
+from .gui import App
 
 
 def main(parser):
-    player = Player(parser)
-    board = Board(initialLattices, initialPositions, player)
-    app = guiShow(parser, board)
+    app = App(parser)
+    app.window.mainloop()
     return app

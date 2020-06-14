@@ -1,17 +1,18 @@
-import pickle
-import time
-import tkinter as tk
 from PIL import ImageTk, Image
+import time
 
 from .classes import *
 
 
 class App:
-    def __init__(self, parser, board):
+    def __init__(self, parser):
         self.parser = parser
+        self.player = Player(parser)
+        self.lattices = parser.initialLattices
+        self.sizes = parser.initialSizes
+        self.locations = parser.initialLocations
         self.lap = 0
 
-        self.board = board
         self.window = tk.Tk()
         self.window.title(parser.gameName)
         self.window.geometry(str(parser.windowSize[0]) + 'x' + str(parser.windowSize[1]))
@@ -23,37 +24,29 @@ class App:
                                                    Image.ANTIALIAS)
         self.playerIcon = ImageTk.PhotoImage(self.playerImage)
         self.playerButton = tk.Button(self.window, image=self.playerIcon, relief=tk.FLAT,
-                                      width=int(parser.playerIconSize[0] * parser.windowSize[0]),
-                                      height=int(parser.playerIconSize[1] * parser.windowSize[1]),
-                                      command=lambda: board.player(self.parser))
+                                      command=lambda: self.player(self.parser))
         self.playerButton.place(x=int(parser.playerIconLocation[0] * parser.windowSize[0]),
                                 y=int(parser.playerIconLocation[1] * parser.windowSize[1]))
 
-        self.gameMapImage = Image.open(parser.materialsPath + parser.substrateMaterial)
+        self.gameMapImage = Image.open(parser.materialsPath + parser.gameMap)
         self.gameMapImage = self.gameMapImage.resize((int(parser.gameMapSize[0] * parser.windowSize[0]),
                                                       int(parser.gameMapSize[1] * parser.windowSize[1])),
                                                      Image.ANTIALIAS)
         self.gameMapIcon = ImageTk.PhotoImage(self.gameMapImage)
-        self.gameMapLabel = tk.Label(self.window, image=self.gameMapIcon,
-                                     width=int(parser.gameMapSize[0] * parser.windowSize[0]),
-                                     height=int(parser.gameMapSize[1] * parser.windowSize[1]))
+        self.gameMapLabel = tk.Label(self.window, image=self.gameMapIcon)
         self.gameMapLabel.place(x=int(parser.gameMapLocation[0] * parser.windowSize[0]),
                                 y=int(parser.gameMapLocation[1] * parser.windowSize[1]))
 
-        self.playerInfoLabel = tk.Label(self.window, text='Name: ' + str(board.player.name) + '\n' +
-                                                          'Grade: ' + str(board.player.grade) + '\n' +
-                                                          'Money: ' + str(board.player.money) + '\n' +
-                                                          'Time: ' + str(board.player.time) + '\n' +
-                                                          'Spirit: ' + str(board.player.spirit),
-                                        justify=tk.LEFT, padx=0, pady=0,
-                                        width=int(parser.playerInfoSize[0] * parser.windowSize[0]),
-                                        height=int(parser.playerInfoSize[1] * parser.windowSize[1]))
+        self.playerInfoLabel = tk.Label(self.window, text='Name: ' + str(self.player.name) + '\n' +
+                                                          'Grade: ' + str(self.player.grade) + '\n' +
+                                                          'Money: ' + str(self.player.money) + '\n' +
+                                                          'Time: ' + str(self.player.time) + '\n' +
+                                                          'Spirit: ' + str(self.player.spirit),
+                                        justify=tk.LEFT, padx=0, pady=0)
         self.playerInfoLabel.place(x=int(parser.playerInfoLocation[0] * parser.windowSize[0]),
                                    y=int(parser.playerInfoLocation[1] * parser.windowSize[1]))
 
-        self.throwDiceButton = tk.Button(self.window, text='Throw dice', command=lambda: App.main(self),
-                                         width=int(parser.throwDiceSize[0] * parser.windowSize[0]),
-                                         height=int(parser.throwDiceSize[1] * parser.windowSize[1]))
+        self.throwDiceButton = tk.Button(self.window, text='Throw dice', command=lambda: App.main(self))
         self.throwDiceButton.place(x=int(parser.throwDiceLocation[0] * parser.windowSize[0]),
                                    y=int(parser.throwDiceLocation[1] * parser.windowSize[1]))
 
@@ -63,77 +56,138 @@ class App:
         self.infoLabel.place(x=int(parser.infoLocation[0] * parser.windowSize[0]),
                              y=int(parser.infoLocation[1] * parser.windowSize[1]))
 
-        #   需要在这里放下所有的地点和卡片
         self.playerSmallImage = self.playerImage.resize((int(parser.playerIconSize[0] * parser.windowSize[0]),
                                                          int(parser.playerIconSize[1] * parser.windowSize[1])),
                                                         Image.ANTIALIAS)
         self.playerSmallIcon = ImageTk.PhotoImage(self.playerSmallImage)
-        self.playerSmallLabel = tk.Label(self.window, image=self.playerSmallIcon,
-                                         width=int(parser.playerSmallIconSize[0] * parser.windowSize[0]),
-                                         height=int(parser.playerSmallIconSize[1] * parser.windowSize[1]))
-        self.playerSmallLabel.place(x=int(initialPositions[self.board.player.location][0] *
-                                          self.gameMapLabel['width']) + self.gameMapLabel.place_info()['x'],
-                                    y=int(initialPositions[self.board.player.location][1] *
-                                          self.gameMapLabel['height']) + self.gameMapLabel.place_info()['y'])
-        self.window.mainloop()
+        self.playerSmallLabel = tk.Label(self.window, image=self.playerSmallIcon)
+        self.playerSmallLabel.place(x=int(self.gameMapLabel['width'] * self.locations[self.player.location][0]) +
+                                      self.gameMapLabel.place_info()['x'],
+                                    y=int(self.gameMapLabel['height'] * self.locations[self.player.location][1]) +
+                                      self.gameMapLabel.place_info()['y'])
+
+        self.latticeLabels = []
+        self.latticeImages = []
+        self.latticeIcons = []
+        for k in range(len(self.lattices)):
+            lattice = self.lattices[k]
+            self.latticeImages.extend(Image.open(parser.materialsPath + lattice.icon))
+            self.latticeImages[-1] = self.latticeImages[-1].resize((int(self.gameMapLabel['width'] * self.sizes[k][0]),
+                                                                    int(self.gameMapLabel['height'] * self.sizes[k][1]),
+                                                                   Image.ANTIALIAS))
+            self.latticeIcons.extend(tk.PhotoImage(self.latticeImages[-1]))
+            self.latticeLabels.extend(tk.Label(self.window, image=self.latticeIcons[-1]))
+            self.latticeLabels[-1].place(x=int(self.gameMapLabel['width'] * self.locations[k][0]) +
+                                           self.gameMapLabel.place_info()['x'],
+                                         y=int(self.gameMapLabel['height'] * self.locations[k][1]) +
+                                           self.gameMapLabel.place_info()['y'])
 
     def main(self):
         dice = self.throwDice()
 
-        if self.board.player.location + dice > len(self.board.positions):
+        if self.player.location + dice > len(self.locations):
             self.lap = self.lap + 1
 
         if self.lap in [0, 1]:
-            self.board.player.location = self.board.player.location + dice % len(self.board.positions)
+            newLocation = self.player.location + dice % len(self.locations)
+            self.movePlayer(newLocation)
+            self.player.location = newLocation
         elif self.lap == 2:
-            self.board.player.location = self.board.player.location + dice % len(self.board.positions)
+            newLocation = self.player.location + dice % len(self.locations)
+            self.movePlayer(newLocation)
+            self.player.location = newLocation
             self.showFinalExam()
         elif self.lap == 3:
             self.enterNextGrade()
+            newLocation = self.parser.initialLocation
+            self.movePlayer(newLocation)
+            self.player.location = newLocation
 
-        self.movePlayer()
-        lattice = self.board.lattices[self.board.player.location]
+        lattice = self.lattices[self.player.location]
         if isinstance(lattice, Chance):
-            pass
+            self.drawCard()
         elif isinstance(lattice, Site):
             pass
         elif not isinstance(lattice, BlankLattice):
             raise RuntimeError('Invalid Lattice!')
 
-    def movePlayer(self):
-        self.playerSmallLabel.place(x=int(self.board.positions[self.board.player.location][0] *
+    def movePlayer(self, newLocation):
+        nSteps = self.parser.nSteps
+        pauseTime = self.parser.pauseTime
+        oldLocation = self.player.location
+        if newLocation < oldLocation:
+            locationIndices = list(range(oldLocation, len(self.locations)))
+            locationIndices.extend(range(newLocation + 1))
+        else:
+            locationIndices = list(range(oldLocation, newLocation + 1))
+
+        for k in range(len(locationIndices) - 1):
+            xFrom = int(self.gameMapLabel['width'] * self.locations[locationIndices[k]][0]) +\
+                    self.gameMapLabel.place_info()['x']
+            yFrom = int(self.gameMapLabel['height'] * self.locations[locationIndices[k]][0]) +\
+                    self.gameMapLabel.place_info()['y']
+            xTo = int(self.gameMapLabel['width'] * self.locations[locationIndices[k + 1]][0]) +\
+                  self.gameMapLabel.place_info()['x']
+            yTo = int(self.gameMapLabel['height'] * self.locations[locationIndices[k + 1]][0]) +\
+                  self.gameMapLabel.place_info()['y']
+            intervalX = round((xTo - xFrom) / nSteps)
+            intervalY = round((yTo - yFrom) / nSteps)
+            xs = list(range(xFrom, xTo + intervalX, intervalX))
+            ys = list(range(yFrom, yTo + intervalY, intervalY))
+            xs[-1] = xTo
+            ys[-1] = yTo
+            for x, y in zip(xs, ys):
+                self.playerSmallLabel.place(x=x, y=y)
+                time.sleep(pauseTime)
+
+        self.playerSmallLabel.place(x=int(self.locations[self.player.location][0] *
                                           self.gameMapLabel['width']) + self.gameMapLabel.place_info()['x'],
-                                    y=int(self.board.positions[self.board.player.location][1] *
+                                    y=int(self.locations[self.player.location][1] *
                                           self.gameMapLabel['height']) + self.gameMapLabel.place_info()['y'])
 
     def updateMap(self):
-        pass
+        for k in range(len(self.lattices)):
+            self.latticeImages[k] = Image.open(self.parser.materialsPath + self.lattices[k].icon)
+            self.latticeImages[k] = self.latticeImages[k].resize((int(self.gameMapLabel['width'] * self.sizes[k][0]),
+                                                                  int(self.gameMapLabel['height'] * self.sizes[k][1]),
+                                                                 Image.ANTIALIAS))
+            self.latticeIcons[k] = tk.PhotoImage(self.latticeImages[k])
+            self.latticeLabels[k]['image'] = self.latticeIcons[-1]
+            self.latticeLabels[k].place(x=int(self.gameMapLabel['width'] * self.locations[k][0]) +
+                                          self.gameMapLabel.place_info()['x'],
+                                        y=int(self.gameMapLabel['height'] * self.locations[k][1]) +
+                                          self.gameMapLabel.place_info()['y'])
 
     def updatePlayerInfo(self):
-        self.playerInfoLabel['text'] = 'Name: ' + str(self.board.player.name) + '\n' +\
-                                       'Grade: ' + str(self.board.player.grade) + '\n' +\
-                                       'Money: ' + str(self.board.player.money) + '\n' +\
-                                       'Time: ' + str(self.board.player.time) + '\n' +\
-                                       'Spirit: ' + str(self.board.player.time)
+        self.playerInfoLabel['text'] = 'Name: ' + str(self.player.name) + '\n' + \
+                                       'Grade: ' + str(self.player.grade) + '\n' + \
+                                       'Money: ' + str(self.player.money) + '\n' + \
+                                       'Time: ' + str(self.player.time) + '\n' + \
+                                       'Spirit: ' + str(self.player.time)
 
     def showFinalExam(self):
-        self.board = Board(latticesWithFinalExam, positionsWithFinalExam, self.board.player)
+        self.lattices = self.parser.latticesWithFinalExam
+        self.locations = self.parser.locationsWithFinalExam
+        self.sizes = self.parser.sizesWithFinalExam
         self.updateMap()
 
     def enterNextGrade(self):
-        def endOfGame():
-            endWindow = tk.Tk()
-            endWindow.geometry('200x300')
-
-        index = grades.index(self.board.player.grade)
-        if index == len(grades) - 1:
-            endOfGame()
+        index = self.parser.grades.index(self.player.grade)
+        if index == len(self.parser.grades) - 1:
+            self.endOfGame()
         else:
-            self.board.player.grade = grades[index + 1]
-            self.board = Board(initialLattices, initialPositions, self.board.player)
+            self.lap = 0
+            self.player.grade = self.parser.grades[index + 1]
+            self.lattices = self.parser.initialLattices
+            self.locations = self.parser.initialLocations
+            self.sizes = self.parser.initialSizes
             self.updatePlayerInfo()
             self.updateMap()
-            self.lap = 0
+
+    def endOfGame(self):
+        endWindow = tk.Tk()
+        endWindow.geometry('200x300')
+        print(self)
 
     def throwDice(self):
         dice = random.randint(1, 6)
@@ -152,16 +206,11 @@ class App:
 
     def drawCard(self, remainedCards=None):
         if remainedCards is None:
-            remainedCards = remainedChances
+            remainedCards = self.parser.remainedChances
         if len(remainedCards) is 0:
-            remainedCards = chances
+            remainedCards = self.parser.chances
 
         card = random.sample(remainedCards, 1)
-        self.board.player.record.append(card)
-        remainedChances.remove(card)
+        self.player.record.append(card)
+        self.parser.remainedChances.remove(card)
         return card
-
-def guiShow(parser, board):
-    app = App(parser, board)
-    return app
-

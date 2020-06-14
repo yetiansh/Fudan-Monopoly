@@ -1,15 +1,6 @@
 import tkinter as tk
 import random
 
-grades = ['freshman', 'sophomore', 'junior', 'senior']
-sites = []  # 设计好的地点
-chances = []  # 设计好的命运牌
-initialPositions = [1]  # 设计好的位置
-positionsWithFinalExam = []
-initialLattices = []   # 设计好的格子
-latticesWithFinalExam = []
-remainedChances = chances
-
 
 class Player:
     def __init__(self, parser):
@@ -17,10 +8,10 @@ class Player:
         self.icon = parser.playerIcon
         self.location = parser.initialLocation
         self.money = parser.initialMoney
-        self.spirit = parser.initialSpirit
         self.time = parser.initialTime
+        self.spirit = parser.initialSpirit
         self.knowledge = parser.initialKnowledge
-        self.grade = grades[0]
+        self.grade = parser.grades[0]
         self.record = []
 
     def __call__(self, parser):
@@ -57,24 +48,16 @@ class Site(Lattice):
         self.isCompulsory = isCompulsory
         self.isLinked = isLinked
         self.linkedMiniGame = linkedMiniGame
-        if self.isLinked and linkedMiniGame is None:
-            raise RuntimeError('Linked mini game must be specified.')
-
-    def __call__(self):
-        #   作为回调函数，调用时弹出一个界面显示地点的信息，待完成
-        pass
 
 
 class Chance(Lattice):
     def __init__(self,
                  name=None,
                  text=None,
-                 icon=None):
+                 icon=None,
+                 isCompulsory=None):
         super().__init__(name, text, icon)
-
-    def __call__(self):
-        #   作为回调函数，调用时弹出一个界面显示命运牌的信息，待完成
-        pass
+        self.isCompulsory = isCompulsory
 
 
 class BlankLattice(Lattice):
@@ -83,14 +66,3 @@ class BlankLattice(Lattice):
                  text=None,
                  icon=None):
         super().__init__(name, text, icon)
-
-    def __call__(self):
-        #   作为回调函数，调用时弹出界面显示空白格子的信息，待完成
-        pass
-
-
-class Board:
-    def __init__(self, lattices, positions, player):
-        self.lattices = lattices
-        self.positions = positions
-        self.player = player

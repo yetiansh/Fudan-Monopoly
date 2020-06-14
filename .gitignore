@@ -127,3 +127,6 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+/handout/materials/display.config
+/handout/materials/game.config
+/handout/materials/gameContents.data
