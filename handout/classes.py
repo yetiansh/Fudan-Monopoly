@@ -14,11 +14,6 @@ class Player:
         self.grade = parser.grades[0]
         self.record = []
 
-    def __call__(self, parser):
-        #   作为回调函数，调用时弹出一个界面显示玩家的属性、头像等信息，待完成
-        window = tk.Tk()
-        window.mainloop()
-
 
 class Lattice:
     def __init__(self,
@@ -33,6 +28,7 @@ class Lattice:
 class Site(Lattice):
     def __init__(self,
                  name=None,
+                 action=None,
                  text=None,
                  icon=None,
                  effect=None,
@@ -40,6 +36,7 @@ class Site(Lattice):
                  isLinked=False,
                  linkedMiniGame=None):
         super().__init__(name, text, icon)
+        self.action = action
         self.effect = effect
         self.isCompulsory = isCompulsory
         self.isLinked = isLinked

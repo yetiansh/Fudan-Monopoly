@@ -24,4 +24,8 @@ config = {"initialLocation": 0,
           "pauseTime": 0.1,
           }
 
+player = {"playerName": 'fields',
+          "playerIcon": 'handout/materials/playerIcon.png'}
+
 pickle.dump(config, open('handout/materials/game.config', 'wb'))
+pickle.dump(player, open('handout/materials/player.config', 'wb'))

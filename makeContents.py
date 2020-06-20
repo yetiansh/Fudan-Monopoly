@@ -5,28 +5,36 @@ from handout.classes import *
 #   金钱、时间、体力、知识
 
 grades = ['大一', '大二', '大三', '大四']
-sites = [Site(name="第三教学楼", text="听课", effect=[0, -1, 0, 1], isCompulsory=False),
-         Site(name="第二教学楼", text="听课，优越的地理位置（临近本超、全家）保证了课间总有充足的食物补给。", effect=[0, -1, 0, 1], isCompulsory=False),
-         Site(name="光华楼小圆桌", text="自习", effect=[0, -1, 0, 1], isCompulsory=False),
-         Site(name="第五教学楼", text="在五教自习最快乐的事，就是带有滑轮的椅子，可以自由滑动，坐着很舒适。", effect=[0, -1, 0, 1], isCompulsory=False),
-         Site(name="第六教学楼", text="自习", effect=[0, -1, 0, 1], isCompulsory=False),
-         Site(name="恒隆物理楼", text="做实验。我的电压表终于接完了，到通电的回合了！测试！咦，这股焦香是……", effect=[0, -1, 0, 1], isCompulsory=False),
-         Site(name="光华楼东侧会议室", text="听讲座", effect=[0, -1, 0, 1], isCompulsory=False),
-         Site(name="书呆子", text="买书，这么便宜的教材和小说，买不了吃亏买不了上当，买一本赚一本啊。", effect=[-1, 0, 0, 1], isCompulsory=False),
-         Site(name="理科图书馆", text="理科图书馆，晚上十点敲响赶人的钟声，一批人会走向三教，而我则会走回宿舍", effect=[0, -1, 0, 1], isCompulsory=False),
-         Site(name="星空咖啡厅", text="消费", effect=[-1, 0, 1, 0], isCompulsory=True),
-         Site(name="南区操场", text="锻炼", effect=[0, -1, 1, 0], isCompulsory=False),
-         Site(name="管院足球场", text="有的场地踢足球费鞋，但这一片就有些特别了，费洗衣机。", effect=[0, -1, 1, 0], isCompulsory=False),
-         Site(name="本部篮球场", text="在复旦之光打过球的场地上打球，我=复旦之光？", effect=[0, -1, 1, 0], isCompulsory=False),
-         Site(name="北区体育馆", text="来打排球。但这二楼排球场，男子2.43的网，跳起来手也伸不过网，害。", effect=[0, -1, 1, 0], isCompulsory=False),
-         Site(name="同济游泳馆", text="游泳", effect=[0, -1, 1, 0], isCompulsory=False),
-         Site(name="宿舍", text="休息", effect=[0, -1, 1, 0], isCompulsory=False),
-         Site(name="佩琳院", text="保健并报销当年度大学生医保", effect=[1, -1, 1, 0], isCompulsory=False),
-         Site(name="光华公司", text="勤工助学，这每小时21.5的工资，就是每周还有钱吃饭的基础", effect=[0, -1, 1, 0], isCompulsory=False),
-         Site(name="管理学院史带楼", text="参加调研，每每看到这些邀请我去调研的问卷时，我就知道，收入来了", effect=[0, -1, 1, 0], isCompulsory=False),
-         Site(name="农业银行", text="物价补贴，+41.5", effect=[0, -1, 1, 0], isCompulsory=False),
-         Site(name="旦苑小卖部", text="买双皮奶，3.8一杯，午饭后来上一杯，带给你一下午的快乐", effect=[0, -1, 1, 0], isCompulsory=False),
-         Site(name="五角场", text="万达百联，火锅电影，吃喝玩乐，带来快乐。", effect=[0, -1, 1, 0], isCompulsory=False),
+sites = [Site(name="第三教学楼", action="上课", text="听课", effect=[0, -1, 0, 1], isCompulsory=False),
+         Site(name="第二教学楼", action="上课", text="听课，优越的地理位置（临近本超、全家）保证了课间总有充足的食物补给。", effect=[0, -1, 0, 1],
+              isCompulsory=False),
+         Site(name="光华楼小圆桌", action="自习", text="自习", effect=[0, -1, 0, 1], isCompulsory=False),
+         Site(name="第五教学楼", action="上课", text="在五教自习最快乐的事，就是带有滑轮的椅子，可以自由滑动，坐着很舒适。", effect=[0, -1, 0, 1],
+              isCompulsory=False),
+         Site(name="第六教学楼", action="上课", text="自习", effect=[0, -1, 0, 1], isCompulsory=False),
+         Site(name="恒隆物理楼", action="做实验", text="做实验。我的电压表终于接完了，到通电的回合了！测试！咦，这股焦香是……", effect=[0, -1, 0, 1],
+              isCompulsory=False),
+         Site(name="光华楼东侧会议室", action="听讲座", text="听讲座", effect=[0, -1, 0, 1], isCompulsory=False),
+         Site(name="书呆子", action="买书", text="买书，这么便宜的教材和小说，买不了吃亏买不了上当，买一本赚一本啊。", effect=[-1, 0, 0, 1],
+              isCompulsory=False),
+         Site(name="理科图书馆", action="借书和自习", text="理科图书馆，晚上十点敲响赶人的钟声，一批人会走向三教，而我则会走回宿舍", effect=[0, -1, 0, 1],
+              isCompulsory=False),
+         Site(name="星空咖啡厅", action="喝咖啡", text="消费", effect=[-1, 0, 1, 0], isCompulsory=True),
+         Site(name="南区操场", action="刷锻", text="锻炼", effect=[0, -1, 1, 0], isCompulsory=False),
+         Site(name="管院足球场", action="踢足球", text="有的场地踢足球费鞋，但这一片就有些特别了，费洗衣机。", effect=[0, -1, 1, 0], isCompulsory=False),
+         Site(name="本部篮球场", action="打篮球", text="在复旦之光打过球的场地上打球，我=复旦之光？", effect=[0, -1, 1, 0], isCompulsory=False),
+         Site(name="北区体育馆", action="打排球", text="来打排球。但这二楼排球场，男子2.43的网，跳起来手也伸不过网，害。", effect=[0, -1, 1, 0],
+              isCompulsory=False),
+         Site(name="同济游泳馆", action="游泳", text="游泳", effect=[0, -1, 1, 0], isCompulsory=False),
+         Site(name="宿舍", action="休息", text="休息", effect=[0, -1, 1, 0], isCompulsory=False),
+         Site(name="佩琳院", action="检查身体", text="保健并报销当年度大学生医保", effect=[1, -1, 1, 0], isCompulsory=False),
+         Site(name="光华公司", action="打工", text="勤工助学，这每小时21.5的工资，就是每周还有钱吃饭的基础", effect=[0, -1, 1, 0], isCompulsory=False),
+         Site(name="管理学院史带楼", action="参加调研", text="参加调研，每每看到这些邀请我去调研的问卷时，我就知道，收入来了", effect=[0, -1, 1, 0],
+              isCompulsory=False),
+         Site(name="农业银行", action="转账", text="物价补贴，+41.5", effect=[0, -1, 1, 0], isCompulsory=False),
+         Site(name="旦苑小卖部", action="买小吃", text="买双皮奶，3.8一杯，午饭后来上一杯，带给你一下午的快乐", effect=[0, -1, 1, 0],
+              isCompulsory=False),
+         Site(name="五角场", action="娱乐", text="万达百联，火锅电影，吃喝玩乐，带来快乐。", effect=[0, -1, 1, 0], isCompulsory=False),
          ]
 
 chances = [{"name": "期中退课", "text": "太菜了，期中退的课，选课犯的罪。-130*n", "effect": [-1, 0, 0, 0], "isCompulsory": True},
@@ -44,9 +52,9 @@ chances = [{"name": "期中退课", "text": "太菜了，期中退的课，选�
 
 initialSizes = []
 sizesWithFinalExam = []
-initialLocations = [[10, 10]]  # 设计好的位置
+initialLocations = []
 locationsWithFinalExam = []
-initialLattices = sites   # 设计好的格子
+initialLattices = sites
 latticesWithFinalExam = sites
 remainedChances = chances
 
@@ -61,4 +69,4 @@ contents = {"initialSizes": initialSizes,
             "grades": grades,
             }
 
-pickle.dump(contents, open('handout/materials/gameContents.data', 'wb'))
+pickle.dump(contents, open('handout/materials/gameContents.dat', 'wb'))

@@ -1,6 +1,9 @@
+import os
 import time
+import pickle
 
 from PIL import ImageTk, Image
+from tkinter import filedialog
 
 from .classes import *
 
@@ -25,7 +28,7 @@ class App:
                                                    Image.ANTIALIAS)
         self.playerIcon = ImageTk.PhotoImage(self.playerImage)
         self.playerButton = tk.Button(self.window, image=self.playerIcon, relief=tk.FLAT,
-                                      command=lambda: self.player(self.parser))
+                                      command=self.showPlayerInfo())
         self.playerButton.place(x=int(parser.playerIconLocation[0] * parser.windowSize[0]),
                                 y=int(parser.playerIconLocation[1] * parser.windowSize[1]))
 
@@ -145,9 +148,92 @@ class App:
                                           self.gameMapLabel['width']) + self.gameMapLabel.place_info()['x'],
                                     y=int(self.locations[self.player.location][1] *
                                           self.gameMapLabel['height']) + self.gameMapLabel.place_info()['y'])
-        self.infoLabel['text'] = self.truncateText(self.infoLabel['text'] + '\n玩家从"' +
+        self.infoLabel['text'] = self.truncateText(self.infoLabel['text'] + '\n你从"' +
                                                    self.lattices[oldLocation].name + "来到了" +
                                                    self.lattices[newLocation].name + "!")
+
+    def showFinalExam(self):
+        self.lattices = self.parser.latticesWithFinalExam
+        self.locations = self.parser.locationsWithFinalExam
+        self.sizes = self.parser.sizesWithFinalExam
+        self.updateMap()
+        self.infoLabel['text'] = self.truncateText(self.infoLabel['text'] + '\n期末考试到来了!')
+
+    def enterNextGrade(self):
+        index = self.parser.grades.index(self.player.grade)
+        if index == len(self.parser.grades) - 1:
+            self.endOfGame()
+        else:
+            self.lap = 0
+            self.player.grade = self.parser.grades[index + 1]
+            self.lattices = self.parser.initialLattices
+            self.locations = self.parser.initialLocations
+            self.sizes = self.parser.initialSizes
+            self.updatePlayerInfo()
+            self.updateMap()
+            self.infoLabel['text'] = self.truncateText(self.infoLabel['text'] + '\n你进入了下一年级!')
+
+    def drawCard(self):
+        if len(self.parser.remainedCards) is 0:
+            self.parser.remainedCards = self.parser.chances
+
+        card = random.sample(self.parser.remainedCards, 1)
+        self.player.record.extend(card)
+        self.parser.remainedChances.remove(card)
+        self.infoLabel['text'] = self.truncateText(self.infoLabel['text'] + '\n你抽到的卡牌是:\n' + card['name'] +
+                                                   ',效果是:\n金钱: ' + ("+" + str(card['effect'][0]) if
+                                                                    card['effect'][0] > 0 else str(card['effect'][0])) +
+                                                   "\n时间: " + ("+" + str(card['effect'][1]) if
+                                                               card['effect'][1] > 0 else str(card['effect'][1])) +
+                                                   "\n体力: " + ("+" + str(card['effect'][2]) if
+                                                               card['effect'][2] > 0 else str(card['effect'][2])) +
+                                                   "\n知识: " + ("+" + str(card['effect'][3]) if
+                                                               card['effect'][3] > 0 else str(card['effect'][3])))
+        time.sleep(0.5)
+        if card['isCompulsory']:
+            self.infoLabel['text'] = self.truncateText(self.infoLabel['text'] + '\n卡牌是强制的,你使用了卡牌')
+            self.useCard(card)
+        else:
+            self.infoLabel['text'] = self.truncateText(self.infoLabel['text'] + '\n卡牌不是强制的,你需要决定\n是否使用卡牌')
+            time.sleep(0.5)
+            newWindow = tk.Tk()
+            newWindow.geometry('300x500')
+            confirmButton = tk.Button(newWindow, text="使用这张卡牌", commamd=lambda: self.useCard(card))
+            discardButton = tk.Button(newWindow, text="不使用这张卡牌", commamd=newWindow.destroy())
+            confirmButton.pack(side=tk.TOP, fill=tk.Y, expand=tk.YES)
+            discardButton.pack(side=tk.BOTTOM, fill=tk.Y, expand=tk.YES)
+            newWindow.mainloop()
+
+    def interactWithSite(self, site):
+        if not site.name == '期末考试':
+            self.infoLabel['text'] = self.truncateText(self.infoLabel['text'] + '\n' + site.name + '的效果是' +
+                                                       '\n金钱: ' + ("+" + str(site.effect[0]) if
+                                                                   site.effect[0] > 0 else str(site.effect[0])) +
+                                                       "\n时间: " + ("+" + str(site.effect[1]) if
+                                                                   site.effect[1] > 0 else str(site.effect[1])) +
+                                                       "\n体力: " + ("+" + str(site.effect[2]) if
+                                                                   site.effect[2] > 0 else str(site.effect[2])) +
+                                                       "\n知识: " + ("+" + str(site.effect[3]) if
+                                                                   site.effect[3] > 0 else str(site.effect[3])))
+            time.sleep(0.5)
+            if site.isCompulsory:
+                self.infoLabel['text'] = self.truncateText(self.infoLabel['text'] + '\n在' + site.name + '你进行了' +
+                                                           site.action + '\n' + site.text)
+            else:
+                self.infoLabel['text'] = self.truncateText(self.infoLabel['text'] + '\n在' + site.name + '你可以选择是否' +
+                                                           site.action)
+                time.sleep(0.5)
+                newWindow = tk.Tk()
+                newWindow.geometry('300x500')
+                confirmButton = tk.Button(newWindow, text="在" + site.name + site.action,
+                                          commamd=lambda: self.makeAction(site))
+                refuseButton = tk.Button(newWindow, text="不在" + site.name + site.action, commamd=newWindow.destroy())
+                confirmButton.pack(side=tk.TOP, fill=tk.Y, expand=tk.YES)
+                refuseButton.pack(side=tk.BOTTOM, fill=tk.Y, expand=tk.YES)
+                newWindow.mainloop()
+        else:
+            self.infoLabel['text'] = self.truncateText(self.infoLabel['text'] + '\n你遇上了期末考试')
+            self.enterNextGrade()
 
     def updateMap(self):
         for k in range(len(self.lattices)):
@@ -170,60 +256,12 @@ class App:
                                        '时间: ' + str(self.player.time) + '\n' + \
                                        '体力: ' + str(self.player.time) + '\n' + \
                                        '知识: ' + str(self.player.knowledge)
-        self.infoLabel['text'] = self.truncateText(self.infoLabel['text'] + '\n玩家属性更新了!')
-
-    def showFinalExam(self):
-        self.lattices = self.parser.latticesWithFinalExam
-        self.locations = self.parser.locationsWithFinalExam
-        self.sizes = self.parser.sizesWithFinalExam
-        self.updateMap()
-        self.infoLabel['text'] = self.truncateText(self.infoLabel['text'] + '\n期末考试到来了!')
-
-    def enterNextGrade(self):
-        index = self.parser.grades.index(self.player.grade)
-        if index == len(self.parser.grades) - 1:
-            self.endOfGame()
-        else:
-            self.lap = 0
-            self.player.grade = self.parser.grades[index + 1]
-            self.lattices = self.parser.initialLattices
-            self.locations = self.parser.initialLocations
-            self.sizes = self.parser.initialSizes
-            self.updatePlayerInfo()
-            self.updateMap()
-            self.infoLabel['text'] = self.truncateText(self.infoLabel['text'] + '\n玩家进入了下一年级!')
+        self.infoLabel['text'] = self.truncateText(self.infoLabel['text'] + '\n你的属性更新了!')
 
     def throwDice(self):
         dice = random.randint(1, 6)
         self.infoLabel['text'] = self.truncateText(self.infoLabel['text'] + '\n掷色子结果是: ' + str(dice) + "!")
         return dice
-
-    def drawCard(self):
-        if len(self.parser.remainedCards) is 0:
-            self.parser.remainedCards = self.parser.chances
-
-        card = random.sample(self.parser.remainedCards, 1)
-        self.player.record.extend(card)
-        self.parser.remainedChances.remove(card)
-        self.infoLabel['text'] = self.truncateText(self.infoLabel['text'] + '\n玩家抽到的卡牌是:\n' + card['name'] +
-                                                   ',效果是:\n金钱: ' + ("+" + str(card['effect'][0]) if
-                                                                    card['effect'][0] > 0 else str(card['effect'][0])) +
-                                                   "\n时间: " + ("+" + str(card['effect'][0]) if
-                                                               card['effect'][1] > 0 else str(card['effect'][1])) +
-                                                   "\n体力: " + ("+" + str(card['effect'][1]) if
-                                                               card['effect'][2] > 0 else str(card['effect'][2])) +
-                                                   "\n知识: " + ("+" + str(card['effect'][2]) if
-                                                               card['effect'][3] > 0 else str(card['effect'][3])))
-        if card['isCompulsory']:
-            self.useCard(card)
-        else:
-            newWindow = tk.Tk()
-            newWindow.geometry('300x500')
-            confirmButton = tk.Button(newWindow, text="使用这张卡牌", commamd=lambda: self.useCard(card))
-            discardButton = tk.Button(newWindow, text="不使用这张卡牌", commamd=newWindow.destroy())
-            confirmButton.pack(side=tk.TOP, fill=tk.Y, expand=tk.YES)
-            discardButton.pack(side=tk.BOTTOM, fill=tk.Y, expand=tk.YES)
-            newWindow.mainloop()
 
     def useCard(self, card):
         self.player.money = self.player.money + card['effect'][0]
@@ -232,13 +270,17 @@ class App:
         self.player.knowledge = self.player.knowledge + card['effect'][3]
         self.updatePlayerInfo()
 
-    def interactWithSite(self, site):
-        self.infoLabel['text'] = self.truncateText(self.infoLabel['text'] + '\n')
+    def makeAction(self, site):
+        self.player.money = self.player.money + site.effect[0]
+        self.player.time = self.player.time + site.effect[1]
+        self.player.spirit = self.player.spirit + site.effect[2]
+        self.player.knowledge = self.player.knowledge + site.effect[3]
+        self.updatePlayerInfo()
 
     def showLatticeInfo(self, lattice):
         if isinstance(lattice, Site):
             self.infoLabel['text'] = self.truncateText(self.infoLabel['text'] + '\n' +
-                                                       lattice.name + ": " + lattice.text)
+                                                       lattice.name + ": " + lattice.action)
         elif isinstance(lattice, Chance):
             if lattice.name == "Chance":
                 self.infoLabel['text'] = self.truncateText(self.infoLabel['text'] + '\n机会: 可抽取一张\n机会牌')
@@ -262,43 +304,47 @@ class App:
         endWindow.geometry('200x300')
         print(self)
 
+    def showPlayerInfo(self):
+        newWindow = tk.Tk()
+        newWindow.geometry('300x300')
 
-class NewPlayer:
-    def __init__(self, init_window_name):
-        self.init_window_name = init_window_name
+        playerImage = Image.open(self.parser.materialsPath + self.parser.playerIcon)
+        playerImage = playerImage.resize((200, 200), Image.ANTIALIAS)
+        playerIcon = ImageTk.PhotoImage(playerImage)
+        playerLabel = tk.Label(newWindow, image=playerIcon)
+        playerLabel.pack(side=tk.TOP)
 
-    # 设置窗口
-    def set_init_window(self):
-        self.init_window_name.title("新游戏")  # 窗口名
-        self.init_window_name.geometry('200x200+10+10')
-        self.init_window_name["bg"] = "grey"
-        # self.init_window_name.attributes("-alpha",0.9)                          #虚化，值越小虚化程度越高
+        playerName = tk.Entry(newWindow)
+        playerName.insert("end", self.player.name)
+        playerName.pack(side=tk.TOP)
 
-        # 标签
-        self.init_PlayerName_label = tk.Label(self.init_window_name, text="姓名")
-        self.init_PlayerName_label.place(x=0, y=100)
-        self.init_PlayerIcon_label = tk.Label(self.init_window_name, text="头像")
-        self.init_PlayerIcon_label.place(x=0, y=0
-                                         )
-        # 文本框
-        self.init_PlayerName_Text = tk.Text(self.init_window_name, width=10, height=2)  # 原始数据录入框
-        self.init_PlayerName_Text.place(x=40, y=100)
-        # 按钮
-        self.GameStart = tk.Button(self.init_window_name, text="Start Game", bg="lightblue", width=10,
-                                   command=self.StartGame())  # 调用内部方法  加()为直接调用
-        self.GameStart.place(x=50, y=150)
+        renameButton = tk.Button(newWindow, text="修改昵称",
+                                 command=lambda: exec('self.renamePlayer(playerName.get(), newWindow); '
+                                                      'newWindow.destroy()'))
+        renameButton.place(x=50, y=250)
+        modifyIconButton = tk.Button(newWindow, text="修改头像",
+                                     command=lambda: exec('self.modifyPlayerIcon(newWindow)); newWindow.destroy()'))
+        modifyIconButton.pack(x=200, y=250)
 
-    # 功能函数
-    def StartGame(self):
-        # 这里把相应信息储存在records 待完成
-        self.init_window_name.quit()
-        print('new game starts')
+        newWindow.mainloop()
 
+    def modifyPlayerIcon(self):
+        newWindow = tk.Tk()
+        newWindow.withdraw()
 
-def SetANewPlayer():
-    # 建立新玩家的界面
-    init_window = Tk()
-    top = NewPlayer(init_window)
-    top.set_init_window()
+        defaultDirectory = os.getcwd()
+        iconPath = filedialog.askopenfilename(title="选择头像", initialdir=defaultDirectory)
+        self.player.icon = iconPath
+        self.playerImage = Image.open(iconPath)
+        self.playerImage = self.playerImage.resize((int(self.parser.playerIconSize[0] * self.parser.windowSize[0]),
+                                                    int(self.parser.playerIconSize[1] * self.parser.windowSize[1])),
+                                                   Image.ANTIALIAS)
+        self.playerIcon = ImageTk.PhotoImage(self.playerImage)
+        self.playerButton['image'] = self.playerIcon
 
-    init_window.mainloop()
+    def renamePlayer(self, newName):
+        self.player.name = newName
+        playerConfig = pickle.load(open(self.parser.playerConfigPath, 'rb'))
+        playerConfig['playerName'] = newName
+        pickle.dump(playerConfig, open(self.parser.playerConfigPath, 'wb'))
+        self.updatePlayerInfo()
