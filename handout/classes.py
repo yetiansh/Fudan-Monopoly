@@ -29,10 +29,6 @@ class Lattice:
         self.text = text
         self.icon = icon
 
-    def __call__(self):
-        #   会被子类覆盖的调用方法
-        pass
-
 
 class Site(Lattice):
     def __init__(self,
