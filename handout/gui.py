@@ -231,13 +231,13 @@ class NewPlayer():
         self.init_PlayerName_label = Label(self.init_window_name, text="姓名")
         self.init_PlayerName_label.place(x=0, y=100)
         self.init_PlayerIcon_label = Label(self.init_window_name, text="头像")
-        self.init_PlayerIcon_label.place(x=0, y=0
-                                         )
+        self.init_PlayerIcon_label.place(x=0, y=0)
+        
         #文本框
         self.init_PlayerName_Text = Text(self.init_window_name, width=10, height=2)  #原始数据录入框
         self.init_PlayerName_Text.place(x=40,y=100)
         #按钮
-        self.GameStart = Button(self.init_window_name, text="Start Game", bg="lightblue", width=10,command=self.StartGame())  # 调用内部方法  加()为直接调用
+        self.GameStart = Button(self.init_window_name, text="Start Game", bg="lightblue", width=10,command=self.StartGame()) 
         self.GameStart.place(x=50,y=150)
 
 
