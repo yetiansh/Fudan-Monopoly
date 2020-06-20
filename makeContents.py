@@ -30,7 +30,7 @@ sites = [Site(name="第三教学楼", text="听课", effect=[0, -1, 0, 1], isCom
 
 chances = [{"name": "期中退课", "text": "太菜了", "effect": [-1, 0, 0, 0], "isCompulsory": True},
            {"name": "阿康的诱惑", "text": "冲动消费", "effect": [-1, 0, 0, 0], "isCompulsory": True},
-           {"name": "靠一点点续命", "text": "", "effect": [-1, 0, 0, 0], "isCompulsory": True},
+           {"name": "靠一点点续命", "text": "乌龙奶茶加波霸，去冰，三分甜。（私货推荐）", "effect": [-1, 0, 0, 0], "isCompulsory": True}
            {"name": "一卡通丢失", "text": "需要补办一卡通", "effect": [-1, 0, 0, 0], "isCompulsory": True},
            {"name": "自行车丢失", "text": "", "effect": [-1, 0, 0, 0], "isCompulsory": True},
            {"name": "赖床起不来", "text": "早锻刷不完了", "effect": [0, 0, -1, 0], "isCompulsory": True},

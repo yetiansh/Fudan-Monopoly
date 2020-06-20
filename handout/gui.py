@@ -214,3 +214,45 @@ class App:
         self.player.record.append(card)
         self.parser.remainedChances.remove(card)
         return card
+
+class NewPlayer():
+    def __init__(self,init_window_name):
+        self.init_window_name = init_window_name
+
+
+    #设置窗口
+    def set_init_window(self):
+        self.init_window_name.title("新游戏")           #窗口名
+        self.init_window_name.geometry('200x200+10+10')
+        self.init_window_name["bg"] = "grey"
+        #self.init_window_name.attributes("-alpha",0.9)                          #虚化，值越小虚化程度越高
+        
+        #标签
+        self.init_PlayerName_label = Label(self.init_window_name, text="姓名")
+        self.init_PlayerName_label.place(x=0, y=100)
+        self.init_PlayerIcon_label = Label(self.init_window_name, text="头像")
+        self.init_PlayerIcon_label.place(x=0, y=0
+                                         )
+        #文本框
+        self.init_PlayerName_Text = Text(self.init_window_name, width=10, height=2)  #原始数据录入框
+        self.init_PlayerName_Text.place(x=40,y=100)
+        #按钮
+        self.GameStart = Button(self.init_window_name, text="Start Game", bg="lightblue", width=10,command=self.StartGame())  # 调用内部方法  加()为直接调用
+        self.GameStart.place(x=50,y=150)
+
+
+    #功能函数
+    def StartGame(self):
+        #这里把相应信息储存在records 待完成
+        self.init_window_name.quit()
+        print('new game starts')
+
+
+
+def SetANewPlayer():
+    #建立新玩家的界面
+    init_window = Tk()
+    top = NewPlayer(init_window)
+    top.set_init_window()
+
+    init_window.mainloop()   
