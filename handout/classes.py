@@ -12,7 +12,8 @@ class Player:
         self.spirit = parser.initialSpirit
         self.knowledge = parser.initialKnowledge
         self.grade = parser.grades[0]
-        self.record = []
+        self.attributes = []
+        self.records = {}
 
 
 class Lattice:

@@ -1,9 +1,9 @@
 import os
-import time
 import pickle
+import time
+from tkinter import filedialog
 
 from PIL import ImageTk, Image
-from tkinter import filedialog
 
 from .classes import *
 
@@ -47,7 +47,7 @@ class App:
                                                           '时间: ' + str(self.player.time) + '\n' +
                                                           '体力: ' + str(self.player.spirit) + '\n' +
                                                           '知识: ' + str(self.player.knowledge),
-                                        justify=tk.LEFT, padx=0, pady=0)
+                                        justify=tk.LEFT)
         self.playerInfoLabel.place(x=int(parser.playerInfoLocation[0] * parser.windowSize[0]),
                                    y=int(parser.playerInfoLocation[1] * parser.windowSize[1]))
 
@@ -55,7 +55,7 @@ class App:
         self.throwDiceButton.place(x=int(parser.throwDiceLocation[0] * parser.windowSize[0]),
                                    y=int(parser.throwDiceLocation[1] * parser.windowSize[1]))
 
-        self.infoLabel = tk.Label(self.window, text='欢迎来到大复翁!', justify=tk.LEFT,
+        self.infoLabel = tk.Label(self.window, text='欢迎来到大复翁!\n', justify=tk.LEFT,
                                   width=int(parser.infoSize[0] * parser.windowSize[0]),
                                   height=int(parser.infoSize[1] * parser.windowSize[1]))
         self.infoLabel.place(x=int(parser.infoLocation[0] * parser.windowSize[0]),
@@ -82,7 +82,7 @@ class App:
                                                                     Image.ANTIALIAS))
             self.latticeIcons.extend(tk.PhotoImage(self.latticeImages[-1]))
             self.latticeLabels.extend(tk.Label(self.window, image=self.latticeIcons[-1]))
-            self.latticeLabels[-1].bind('<Enter>', lambda event: self.showLatticeInfo(self.latticeLabels[-1]))
+            self.latticeLabels[-1].bind('<Button-1>', lambda event: self.showLatticeInfo(self.latticeLabels[-1]))
             self.latticeLabels[-1].place(x=int(self.gameMapLabel['width'] * self.locations[k][0]) +
                                            self.gameMapLabel.place_info()['x'],
                                          y=int(self.gameMapLabel['height'] * self.locations[k][1]) +
@@ -157,30 +157,34 @@ class App:
         self.locations = self.parser.locationsWithFinalExam
         self.sizes = self.parser.sizesWithFinalExam
         self.updateMap()
-        self.infoLabel['text'] = self.truncateText(self.infoLabel['text'] + '\n期末考试到来了!')
+        self.infoLabel['text'] = self.truncateText(self.infoLabel['text'] + '\n期末考试出现了!')
 
     def enterNextGrade(self):
         index = self.parser.grades.index(self.player.grade)
         if index == len(self.parser.grades) - 1:
             self.endOfGame()
         else:
+            self.player.attributes.append(
+                [self.player.money, self.player.time, self.player.spirit, self.player.knowledge])
+
             self.lap = 0
             self.player.grade = self.parser.grades[index + 1]
             self.lattices = self.parser.initialLattices
             self.locations = self.parser.initialLocations
             self.sizes = self.parser.initialSizes
+
+            time.sleep(0.5)
             self.updatePlayerInfo()
             self.updateMap()
-            self.infoLabel['text'] = self.truncateText(self.infoLabel['text'] + '\n你进入了下一年级!')
+            self.infoLabel['text'] = self.truncateText(self.infoLabel['text'] + '\n你在期末考试后进入了下一年级!')
 
     def drawCard(self):
         if len(self.parser.remainedCards) is 0:
             self.parser.remainedCards = self.parser.chances
 
         card = random.sample(self.parser.remainedCards, 1)
-        self.player.record.extend(card)
         self.parser.remainedChances.remove(card)
-        self.infoLabel['text'] = self.truncateText(self.infoLabel['text'] + '\n你抽到的卡牌是:\n' + card['name'] +
+        self.infoLabel['text'] = self.truncateText(self.infoLabel['text'] + '\n你抽到的卡牌是: ' + card['name'] +
                                                    ',效果是:\n金钱: ' + ("+" + str(card['effect'][0]) if
                                                                     card['effect'][0] > 0 else str(card['effect'][0])) +
                                                    "\n时间: " + ("+" + str(card['effect'][1]) if
@@ -219,6 +223,7 @@ class App:
             if site.isCompulsory:
                 self.infoLabel['text'] = self.truncateText(self.infoLabel['text'] + '\n在' + site.name + '你进行了' +
                                                            site.action + '\n' + site.text)
+                self.makeAction(site)
             else:
                 self.infoLabel['text'] = self.truncateText(self.infoLabel['text'] + '\n在' + site.name + '你可以选择是否' +
                                                            site.action)
@@ -264,6 +269,11 @@ class App:
         return dice
 
     def useCard(self, card):
+        if not card['name'] in self.player.records.keys():
+            self.player.records[card['name']] = 1
+        else:
+            self.player.records[card['name']] = self.player.records[card['name']] + 1
+
         self.player.money = self.player.money + card['effect'][0]
         self.player.time = self.player.time + card['effect'][1]
         self.player.spirit = self.player.spirit + card['effect'][2]
@@ -271,6 +281,12 @@ class App:
         self.updatePlayerInfo()
 
     def makeAction(self, site):
+        if not "在" + site['name'] + site['action'] in self.player.records.keys():
+            self.player.records["在" + site['name'] + site['action']] = 1
+        else:
+            self.player.records["在" + site['name'] + site['action']] = \
+                self.player.records["在" + site['name'] + site['action']] + 1
+
         self.player.money = self.player.money + site.effect[0]
         self.player.time = self.player.time + site.effect[1]
         self.player.spirit = self.player.spirit + site.effect[2]
@@ -300,9 +316,62 @@ class App:
             return text[index + 1:]
 
     def endOfGame(self):
-        endWindow = tk.Tk()
-        endWindow.geometry('200x300')
-        print(self)
+        def showLines(event):
+            for line in lines:
+                message['text'] = message['text'] + line + '\n'
+                time.sleep(0.5)
+
+        with open('handout/materials/gameRecord-' + self.player.name + time.strftime('%Y-%m-%d %H-%M-%S.dat'),
+                  'wb') as file:
+            pickle.dump(self.player.attributes, file)
+            pickle.dump(self.player.records, file)
+
+        records = sorted(self.player.records.items(), key=lambda k: k[1])
+        knowledge = sum([result[3] for result in self.player.attributes])
+        spirit = sum([result[2] for result in self.player.attributes])
+
+        if knowledge < 15:
+            knowledgeLine = '学习对你来说似乎相当挣扎, 补考是你每个学期开始前一定经历的事情, 你不懂身边的人是怎么搞清楚淑芬大雾的, 对你来说真的太难了, 最后, 一张均绩2.0的成绩单, 让你低空飘过\n'
+        elif 15 <= knowledge < 25:
+            knowledgeLine = '大学的学习节奏有点让你不太适应, 各种各样的pj和pre似乎总是堆在一起来到ddl, 很难处理过来, 这种压力将你的绩点定格在了2.7\n'
+        elif 25 <= knowledge < 35:
+            knowledgeLine = '从高中升上大学, 虽然开始有些不太适应, 但通过你起早贪黑地学习, 教学楼成了你的第二宿舍, 绩点也在稳步提高, 每个在教室度过的夜晚都成为你3.3均绩的基石\n'
+        else:
+            knowledgeLine = '对你来说, 学习就是小菜一碟, 不管是专业课、模块课, 还是英语课、体育课, 全部都不在话下, 教学楼就是你的第二宿舍, 均绩4.0, 你就是学习的神\n'
+
+        if spirit < 15:
+            spiritLine = '体育活动就是你的天敌, 每个学期的早锻、必锻就期待着一些能提供刷卡但不需要动的活动来完成, 各种体育比赛更是和你无缘, 最终久坐不动压垮了你的身体, 让你常常感觉到身体不舒服\n'
+        elif 15 <= spirit < 25:
+            spiritLine = '体育活动对你来说有些勉强, 出于身体健康的考虑, 你仍然会去参加一些校内体育比赛, 每个学期的 锻炼总是堪堪刷完, 直到工作以后, 你才发现养成一些良好锻炼习惯的重要性\n'
+        elif 25 <= spirit < 35:
+            spiritLine = '体育活动作为你的兴趣, 从来不会对你产生负担, 开始刷锻第三周你就能刷完, 院系杯、信院杯、校运动会总有你的身影, 名次也相当不错。身体是革命的本钱, ' \
+                         '一副健康的体魄为你以后长久的工作打下了基础\n '
+        else:
+            spiritLine = '体育比赛是你本科生活的重要一环, 制霸了校内的所有杯赛。同时作为复旦校队队长, 你率队参加大学生业余组比赛, 拿下两届冠军, 刷锻？免了三学期的锻, 并不需要刷\n'
+
+        lines = "四年的时光一晃而过, 转眼间, 已经来到了毕业的日子\n6月, 初夏, 天气还不是那么炎热, 你回忆起了过去四年的经历……\n" + \
+                "四年里，你一共" + records[0][0] + str(records[0][1]) + "次, " + \
+                records[1][0] + str(records[1][1]) + "次, " + \
+                records[2][0] + str(records[2][1]) + "次\n" + knowledgeLine + '\n' + spiritLine
+
+        if knowledge + spirit > 80:
+            lines = lines + "德智体美劳全面发展的你在毕业典礼上荣获毕业生之星称号\n"
+        if self.player.records['期中退课'] > 3:
+            lines = lines + "退课是你复旦生活中过不去的一道坎, 每个学期都退课让你成为了一个传说\n"
+        if self.player.records['旦苑小卖部'] + self.player.records['靠一点点续命'] + self.player.records['阿康的诱惑'] + \
+                self.player.records['五角场'] > 8:
+            lines = lines + "甜食和烧烤的快乐是你无法拒绝的, 当然这也导致了四年间你疯狂增长的体重\n"
+
+        lines = lines + "总而言之, 恭喜你顺利毕业, 祝贺你跻身百年复旦的星空, 日月光华中有你闪亮的眼睛, 你计划的秋天已褪去童话的色彩, 一个真实的现在可以开垦一万个美丽的未来!"
+        lines = lines.split('\n')
+
+        newWindow = tk.Tk()
+        newWindow.geometry('400x300')
+        message = tk.Message(newWindow, width=100)
+        message.pack(side=tk.TOP)
+        button = tk.Button(newWindow, text="展示你的毕业报告", command=showLines)
+        button.pack(side=tk.BOTTOM)
+        newWindow.mainloop()
 
     def showPlayerInfo(self):
         newWindow = tk.Tk()
@@ -334,6 +403,11 @@ class App:
 
         defaultDirectory = os.getcwd()
         iconPath = filedialog.askopenfilename(title="选择头像", initialdir=defaultDirectory)
+
+        playerConfig = pickle.load(open(self.parser.playerConfigPath, 'rb'))
+        playerConfig['playerIcon'] = iconPath
+        pickle.dump(playerConfig, open(self.parser.playerConfigPath, 'wb'))
+
         self.player.icon = iconPath
         self.playerImage = Image.open(iconPath)
         self.playerImage = self.playerImage.resize((int(self.parser.playerIconSize[0] * self.parser.windowSize[0]),
