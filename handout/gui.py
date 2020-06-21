@@ -28,7 +28,7 @@ class App:
                                                    Image.ANTIALIAS)
         self.playerIcon = ImageTk.PhotoImage(self.playerImage)
         self.playerButton = tk.Button(self.window, image=self.playerIcon, relief=tk.FLAT,
-                                      command=self.showPlayerInfo())
+                                      command=self.showPlayerInfo)
         self.playerButton.place(x=int(parser.playerIconLocation[0] * parser.windowSize[0]),
                                 y=int(parser.playerIconLocation[1] * parser.windowSize[1]))
 
@@ -51,7 +51,7 @@ class App:
         self.playerInfoLabel.place(x=int(parser.playerInfoLocation[0] * parser.windowSize[0]),
                                    y=int(parser.playerInfoLocation[1] * parser.windowSize[1]))
 
-        self.throwDiceButton = tk.Button(self.window, text='掷色子', command=lambda: App.main(self))
+        self.throwDiceButton = tk.Button(self.window, text='掷色子', command=lambda: self.main)
         self.throwDiceButton.place(x=int(parser.throwDiceLocation[0] * parser.windowSize[0]),
                                    y=int(parser.throwDiceLocation[1] * parser.windowSize[1]))
 
@@ -388,11 +388,10 @@ class App:
         playerName.pack(side=tk.TOP)
 
         renameButton = tk.Button(newWindow, text="修改昵称",
-                                 command=lambda: exec('self.renamePlayer(playerName.get(), newWindow); '
-                                                      'newWindow.destroy()'))
+                                 command=lambda: exec('self.renamePlayer(playerName.get()); newWindow.destroy()'))
         renameButton.place(x=50, y=250)
         modifyIconButton = tk.Button(newWindow, text="修改头像",
-                                     command=lambda: exec('self.modifyPlayerIcon(newWindow)); newWindow.destroy()'))
+                                     command=lambda: exec('self.modifyPlayerIcon(); newWindow.destroy()'))
         modifyIconButton.pack(x=200, y=250)
 
         newWindow.mainloop()
