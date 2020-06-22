@@ -15,7 +15,7 @@ parser.add_argument('--gameContentsPath', type=str, default='handout/materials/g
 parser = parser.parse_args()
 
 if parser.playerName is None or parser.playerIcon is None:
-    playerConfig = pickle.load(open(parser.playerConfigPath))
+    playerConfig = pickle.load(open(parser.playerConfigPath, 'rb'))
     if parser.playerName is None:
         parser.playerName = playerConfig['playerName']
     if parser.playerIcon is None:

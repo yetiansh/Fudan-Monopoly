@@ -37,7 +37,9 @@ class App:
                                                       int(parser.gameMapSize[1] * parser.windowSize[1])),
                                                      Image.ANTIALIAS)
         self.gameMapIcon = ImageTk.PhotoImage(self.gameMapImage)
-        self.gameMapLabel = tk.Label(self.window, image=self.gameMapIcon)
+        self.gameMapLabel = tk.Label(self.window, image=self.gameMapIcon,
+                                     width=int(parser.gameMapSize[0] * parser.windowSize[0]),
+                                     height=int(parser.gameMapSize[1] * parser.windowSize[1]))
         self.gameMapLabel.place(x=int(parser.gameMapLocation[0] * parser.windowSize[0]),
                                 y=int(parser.gameMapLocation[1] * parser.windowSize[1]))
 
@@ -51,42 +53,42 @@ class App:
         self.playerInfoLabel.place(x=int(parser.playerInfoLocation[0] * parser.windowSize[0]),
                                    y=int(parser.playerInfoLocation[1] * parser.windowSize[1]))
 
-        self.throwDiceButton = tk.Button(self.window, text='掷色子', command=lambda: self.main)
+        self.throwDiceButton = tk.Button(self.window, text='掷色子', command=self.main)
         self.throwDiceButton.place(x=int(parser.throwDiceLocation[0] * parser.windowSize[0]),
                                    y=int(parser.throwDiceLocation[1] * parser.windowSize[1]))
 
-        self.infoLabel = tk.Label(self.window, text='欢迎来到大复翁!\n', justify=tk.LEFT,
+        self.infoLabel = tk.Label(self.window, text='欢迎来到大复翁\n', justify=tk.LEFT, wraplength=120,
                                   width=int(parser.infoSize[0] * parser.windowSize[0]),
                                   height=int(parser.infoSize[1] * parser.windowSize[1]))
         self.infoLabel.place(x=int(parser.infoLocation[0] * parser.windowSize[0]),
                              y=int(parser.infoLocation[1] * parser.windowSize[1]))
-
-        self.playerSmallImage = self.playerImage.resize((int(parser.playerIconSize[0] * parser.windowSize[0]),
-                                                         int(parser.playerIconSize[1] * parser.windowSize[1])),
-                                                        Image.ANTIALIAS)
-        self.playerSmallIcon = ImageTk.PhotoImage(self.playerSmallImage)
-        self.playerSmallLabel = tk.Label(self.window, image=self.playerSmallIcon)
-        self.playerSmallLabel.place(x=int(self.gameMapLabel['width'] * self.locations[self.player.location][0]) +
-                                      self.gameMapLabel.place_info()['x'],
-                                    y=int(self.gameMapLabel['height'] * self.locations[self.player.location][1]) +
-                                      self.gameMapLabel.place_info()['y'])
 
         self.latticeLabels = []
         self.latticeImages = []
         self.latticeIcons = []
         for k in range(len(self.lattices)):
             lattice = self.lattices[k]
-            self.latticeImages.extend(Image.open(parser.materialsPath + lattice.icon))
+            self.latticeImages = self.latticeImages + [Image.open(parser.materialsPath + lattice.icon)]
             self.latticeImages[-1] = self.latticeImages[-1].resize((int(self.gameMapLabel['width'] * self.sizes[k][0]),
-                                                                    int(self.gameMapLabel['height'] * self.sizes[k][1]),
-                                                                    Image.ANTIALIAS))
-            self.latticeIcons.extend(tk.PhotoImage(self.latticeImages[-1]))
-            self.latticeLabels.extend(tk.Label(self.window, image=self.latticeIcons[-1]))
+                                                                    int(self.gameMapLabel['height'] * self.sizes[k][1])),
+                                                                    Image.ANTIALIAS)
+            self.latticeIcons = self.latticeIcons + [ImageTk.PhotoImage(self.latticeImages[-1])]
+            self.latticeLabels = self.latticeLabels + [tk.Label(self.window, image=self.latticeIcons[-1])]
             self.latticeLabels[-1].bind('<Button-1>', lambda event: self.showLatticeInfo(self.latticeLabels[-1]))
             self.latticeLabels[-1].place(x=int(self.gameMapLabel['width'] * self.locations[k][0]) +
-                                           self.gameMapLabel.place_info()['x'],
+                                           int(self.gameMapLabel.place_info()['x']),
                                          y=int(self.gameMapLabel['height'] * self.locations[k][1]) +
-                                           self.gameMapLabel.place_info()['y'])
+                                           int(self.gameMapLabel.place_info()['y']))
+
+        self.playerSmallImage = self.playerImage.resize((int(parser.playerSmallIconSize[0] * parser.windowSize[0]),
+                                                         int(parser.playerSmallIconSize[1] * parser.windowSize[1])),
+                                                        Image.ANTIALIAS)
+        self.playerSmallIcon = ImageTk.PhotoImage(self.playerSmallImage)
+        self.playerSmallLabel = tk.Label(self.window, image=self.playerSmallIcon)
+        self.playerSmallLabel.place(x=int(self.gameMapLabel['width'] * self.locations[self.player.location][0]) +
+                                      int(self.gameMapLabel.place_info()['x']),
+                                    y=int(self.gameMapLabel['height'] * self.locations[self.player.location][1]) +
+                                      int(self.gameMapLabel.place_info()['y']))
 
     def main(self):
         dice = self.throwDice()
@@ -127,17 +129,25 @@ class App:
 
         for k in range(len(locationIndices) - 1):
             xFrom = int(self.gameMapLabel['width'] * self.locations[locationIndices[k]][0]) + \
-                    self.gameMapLabel.place_info()['x']
+                    int(self.gameMapLabel.place_info()['x'])
             yFrom = int(self.gameMapLabel['height'] * self.locations[locationIndices[k]][0]) + \
-                    self.gameMapLabel.place_info()['y']
+                    int(self.gameMapLabel.place_info()['y'])
             xTo = int(self.gameMapLabel['width'] * self.locations[locationIndices[k + 1]][0]) + \
-                  self.gameMapLabel.place_info()['x']
+                  int(self.gameMapLabel.place_info()['x'])
             yTo = int(self.gameMapLabel['height'] * self.locations[locationIndices[k + 1]][0]) + \
-                  self.gameMapLabel.place_info()['y']
+                  int(self.gameMapLabel.place_info()['y'])
             intervalX = round((xTo - xFrom) / nSteps)
             intervalY = round((yTo - yFrom) / nSteps)
-            xs = list(range(xFrom, xTo + intervalX, intervalX))
-            ys = list(range(yFrom, yTo + intervalY, intervalY))
+            if intervalX is not 0:
+                xs = list(range(xFrom, xTo + intervalX, intervalX))
+            else:
+                xs = [xTo] * nSteps
+
+            if intervalY is not 0:
+                ys = list(range(yFrom, yTo + intervalY, intervalY))
+            else:
+                ys = [yTo] * nSteps
+
             xs[-1] = xTo
             ys[-1] = yTo
             for x, y in zip(xs, ys):
@@ -145,19 +155,19 @@ class App:
                 time.sleep(pauseTime)
 
         self.playerSmallLabel.place(x=int(self.locations[self.player.location][0] *
-                                          self.gameMapLabel['width']) + self.gameMapLabel.place_info()['x'],
+                                          self.gameMapLabel['width']) + int(self.gameMapLabel.place_info()['x']),
                                     y=int(self.locations[self.player.location][1] *
-                                          self.gameMapLabel['height']) + self.gameMapLabel.place_info()['y'])
-        self.infoLabel['text'] = self.truncateText(self.infoLabel['text'] + '\n你从"' +
+                                          self.gameMapLabel['height']) + int(self.gameMapLabel.place_info()['y']))
+        self.infoLabel['text'] = self.truncateText(self.infoLabel['text'] + '\n你从' +
                                                    self.lattices[oldLocation].name + "来到了" +
-                                                   self.lattices[newLocation].name + "!")
+                                                   self.lattices[newLocation].name)
 
     def showFinalExam(self):
         self.lattices = self.parser.latticesWithFinalExam
         self.locations = self.parser.locationsWithFinalExam
         self.sizes = self.parser.sizesWithFinalExam
         self.updateMap()
-        self.infoLabel['text'] = self.truncateText(self.infoLabel['text'] + '\n期末考试出现了!')
+        self.infoLabel['text'] = self.truncateText(self.infoLabel['text'] + '\n期末考试出现了')
 
     def enterNextGrade(self):
         index = self.parser.grades.index(self.player.grade)
@@ -173,19 +183,19 @@ class App:
             self.locations = self.parser.initialLocations
             self.sizes = self.parser.initialSizes
 
-            time.sleep(0.5)
+            time.sleep(self.parser.pauseTime)
             self.updatePlayerInfo()
             self.updateMap()
-            self.infoLabel['text'] = self.truncateText(self.infoLabel['text'] + '\n你在期末考试后进入了下一年级!')
+            self.infoLabel['text'] = self.truncateText(self.infoLabel['text'] + '\n你在期末考试后进入了下一年级')
 
     def drawCard(self):
-        if len(self.parser.remainedCards) is 0:
-            self.parser.remainedCards = self.parser.chances
+        if len(self.parser.remainedChances) is 0:
+            self.parser.remainedChances = self.parser.chances
 
-        card = random.sample(self.parser.remainedCards, 1)
+        [card] = random.sample(self.parser.remainedChances, 1)
         self.parser.remainedChances.remove(card)
-        self.infoLabel['text'] = self.truncateText(self.infoLabel['text'] + '\n你抽到的卡牌是: ' + card['name'] +
-                                                   ',效果是:\n金钱: ' + ("+" + str(card['effect'][0]) if
+        self.infoLabel['text'] = self.truncateText(self.infoLabel['text'] + '\n你抽到的卡牌是:\n' + card['name'] +
+                                                   '\n效果是:\n金钱: ' + ("+" + str(card['effect'][0]) if
                                                                     card['effect'][0] > 0 else str(card['effect'][0])) +
                                                    "\n时间: " + ("+" + str(card['effect'][1]) if
                                                                card['effect'][1] > 0 else str(card['effect'][1])) +
@@ -193,17 +203,17 @@ class App:
                                                                card['effect'][2] > 0 else str(card['effect'][2])) +
                                                    "\n知识: " + ("+" + str(card['effect'][3]) if
                                                                card['effect'][3] > 0 else str(card['effect'][3])))
-        time.sleep(0.5)
+        time.sleep(self.parser.pauseTime)
         if card['isCompulsory']:
             self.infoLabel['text'] = self.truncateText(self.infoLabel['text'] + '\n卡牌是强制的,你使用了卡牌')
             self.useCard(card)
         else:
             self.infoLabel['text'] = self.truncateText(self.infoLabel['text'] + '\n卡牌不是强制的,你需要决定\n是否使用卡牌')
-            time.sleep(0.5)
+            time.sleep(self.parser.pauseTime)
             newWindow = tk.Tk()
             newWindow.geometry('300x500')
-            confirmButton = tk.Button(newWindow, text="使用这张卡牌", commamd=lambda: self.useCard(card))
-            discardButton = tk.Button(newWindow, text="不使用这张卡牌", commamd=newWindow.destroy())
+            confirmButton = tk.Button(newWindow, text="使用这张卡牌", command=lambda: self.useCard(card))
+            discardButton = tk.Button(newWindow, text="不使用这张卡牌", command=newWindow.destroy)
             confirmButton.pack(side=tk.TOP, fill=tk.Y, expand=tk.YES)
             discardButton.pack(side=tk.BOTTOM, fill=tk.Y, expand=tk.YES)
             newWindow.mainloop()
@@ -219,22 +229,22 @@ class App:
                                                                    site.effect[2] > 0 else str(site.effect[2])) +
                                                        "\n知识: " + ("+" + str(site.effect[3]) if
                                                                    site.effect[3] > 0 else str(site.effect[3])))
-            time.sleep(0.5)
+            time.sleep(self.parser.pauseTime)
             if site.isCompulsory:
-                self.infoLabel['text'] = self.truncateText(self.infoLabel['text'] + '\n在' + site.name + '你进行了' +
-                                                           site.action + '\n' + site.text)
                 self.makeAction(site)
             else:
                 self.infoLabel['text'] = self.truncateText(self.infoLabel['text'] + '\n在' + site.name + '你可以选择是否' +
                                                            site.action)
-                time.sleep(0.5)
+                time.sleep(self.parser.pauseTime)
                 newWindow = tk.Tk()
-                newWindow.geometry('300x500')
-                confirmButton = tk.Button(newWindow, text="在" + site.name + site.action,
-                                          commamd=lambda: self.makeAction(site))
-                refuseButton = tk.Button(newWindow, text="不在" + site.name + site.action, commamd=newWindow.destroy())
-                confirmButton.pack(side=tk.TOP, fill=tk.Y, expand=tk.YES)
-                refuseButton.pack(side=tk.BOTTOM, fill=tk.Y, expand=tk.YES)
+                newWindow.geometry('300x50')
+                newWindow.title('选择动作')
+                confirmButton = tk.Button(newWindow, text="在" + site.name + site.action, relief=tk.FLAT,
+                                          command=lambda: self.makeAction(site))
+                refuseButton = tk.Button(newWindow, text="不在" + site.name + site.action, relief=tk.FLAT,
+                                         command=newWindow.destroy)
+                confirmButton.pack(side=tk.LEFT, fill=tk.Y, expand=tk.YES)
+                refuseButton.pack(side=tk.RIGHT, fill=tk.Y, expand=tk.YES)
                 newWindow.mainloop()
         else:
             self.infoLabel['text'] = self.truncateText(self.infoLabel['text'] + '\n你遇上了期末考试')
@@ -249,23 +259,23 @@ class App:
             self.latticeIcons[k] = tk.PhotoImage(self.latticeImages[k])
             self.latticeLabels[k]['image'] = self.latticeIcons[-1]
             self.latticeLabels[k].place(x=int(self.gameMapLabel['width'] * self.locations[k][0]) +
-                                          self.gameMapLabel.place_info()['x'],
+                                          int(self.gameMapLabel.place_info()['x']),
                                         y=int(self.gameMapLabel['height'] * self.locations[k][1]) +
-                                          self.gameMapLabel.place_info()['y'])
-        self.infoLabel['text'] = self.truncateText(self.infoLabel['text'] + '\n游戏地图更新了!')
+                                          int(self.gameMapLabel.place_info()['y']))
+        self.infoLabel['text'] = self.truncateText(self.infoLabel['text'] + '\n游戏地图更新了')
 
     def updatePlayerInfo(self):
         self.playerInfoLabel['text'] = '姓名: ' + str(self.player.name) + '\n' + \
                                        '年级: ' + str(self.player.grade) + '\n' + \
                                        '金钱: ' + str(self.player.money) + '\n' + \
                                        '时间: ' + str(self.player.time) + '\n' + \
-                                       '体力: ' + str(self.player.time) + '\n' + \
+                                       '体力: ' + str(self.player.spirit) + '\n' + \
                                        '知识: ' + str(self.player.knowledge)
-        self.infoLabel['text'] = self.truncateText(self.infoLabel['text'] + '\n你的属性更新了!')
+        self.infoLabel['text'] = self.truncateText(self.infoLabel['text'] + '\n你的属性更新了')
 
     def throwDice(self):
         dice = random.randint(1, 6)
-        self.infoLabel['text'] = self.truncateText(self.infoLabel['text'] + '\n掷色子结果是: ' + str(dice) + "!")
+        self.infoLabel['text'] = self.truncateText(self.infoLabel['text'] + '\n掷色子结果是: ' + str(dice) + "")
         return dice
 
     def useCard(self, card):
@@ -281,12 +291,14 @@ class App:
         self.updatePlayerInfo()
 
     def makeAction(self, site):
-        if not "在" + site['name'] + site['action'] in self.player.records.keys():
-            self.player.records["在" + site['name'] + site['action']] = 1
+        if not "在" + site.name + site.action in self.player.records.keys():
+            self.player.records["在" + site.name + site.action] = 1
         else:
-            self.player.records["在" + site['name'] + site['action']] = \
-                self.player.records["在" + site['name'] + site['action']] + 1
+            self.player.records["在" + site.name + site.action] = \
+                self.player.records["在" + site.name + site.action] + 1
 
+        self.infoLabel['text'] = self.truncateText(self.infoLabel['text'] + '\n在' + site.name + '你进行了' +
+                                                   site.action + '\n' + site.text)
         self.player.money = self.player.money + site.effect[0]
         self.player.time = self.player.time + site.effect[1]
         self.player.spirit = self.player.spirit + site.effect[2]
@@ -296,7 +308,7 @@ class App:
     def showLatticeInfo(self, lattice):
         if isinstance(lattice, Site):
             self.infoLabel['text'] = self.truncateText(self.infoLabel['text'] + '\n' +
-                                                       lattice.name + ": " + lattice.action)
+                                                       lattice.name + ": " + lattice.text)
         elif isinstance(lattice, Chance):
             if lattice.name == "Chance":
                 self.infoLabel['text'] = self.truncateText(self.infoLabel['text'] + '\n机会: 可抽取一张\n机会牌')
@@ -312,14 +324,14 @@ class App:
         else:
             index = 0
             for i in range(n - self.parser.maxLines):
-                index = index + text[index + 1:].index('\n')
+                index = index + text[index + 1:].index('\n') + 1
             return text[index + 1:]
 
     def endOfGame(self):
         def showLines(event):
             for line in lines:
                 message['text'] = message['text'] + line + '\n'
-                time.sleep(0.5)
+                time.sleep(self.parser.pauseTime)
 
         with open('handout/materials/gameRecord-' + self.player.name + time.strftime('%Y-%m-%d %H-%M-%S.dat'),
                   'wb') as file:
@@ -356,13 +368,14 @@ class App:
 
         if knowledge + spirit > 80:
             lines = lines + "德智体美劳全面发展的你在毕业典礼上荣获毕业生之星称号\n"
-        if self.player.records['期中退课'] > 3:
-            lines = lines + "退课是你复旦生活中过不去的一道坎, 每个学期都退课让你成为了一个传说\n"
+        if '期中退课' in self.player.records.keys():
+            if self.player.records['期中退课'] > 3:
+                lines = lines + "退课是你复旦生活中过不去的一道坎, 每个学期都退课让你成为了一个传说\n"
         if self.player.records['旦苑小卖部'] + self.player.records['靠一点点续命'] + self.player.records['阿康的诱惑'] + \
                 self.player.records['五角场'] > 8:
             lines = lines + "甜食和烧烤的快乐是你无法拒绝的, 当然这也导致了四年间你疯狂增长的体重\n"
 
-        lines = lines + "总而言之, 恭喜你顺利毕业, 祝贺你跻身百年复旦的星空, 日月光华中有你闪亮的眼睛, 你计划的秋天已褪去童话的色彩, 一个真实的现在可以开垦一万个美丽的未来!"
+        lines = lines + "总而言之, 恭喜你顺利毕业, 祝贺你跻身百年复旦的星空, 日月光华中有你闪亮的眼睛, 你计划的秋天已褪去童话的色彩, 一个真实的现在可以开垦一万个美丽的未来"
         lines = lines.split('\n')
 
         newWindow = tk.Tk()

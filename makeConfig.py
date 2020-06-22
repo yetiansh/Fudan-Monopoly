@@ -13,11 +13,11 @@ config = {"initialLocation": 0,
           "playerInfoSize": [15 / 1000, 6 / 600],
           "playerInfoLocation": [0.02, 0.3],
           "throwDiceSize": [20 / 1000, 1 / 600],
-          "throwDiceLocation": [0.02, 0.5],
-          "infoSize": [20 / 1000, 15 / 600],
-          "infoLocation": [0.02, 0.55],
-          "maxLines": 13,
-          "playerSmallIconSize": [0.02, 0.028],
+          "throwDiceLocation": [0.08, 0.5],
+          "infoSize": [25 / 1000, 15 / 600],
+          "infoLocation": [0.015, 0.55],
+          "maxLines": 10,
+          "playerSmallIconSize": [0.07, 0.1],
           "materialsPath": 'handout/materials/',
           "gameMap": 'gameMap.png',
           "nSteps": 5,
@@ -25,7 +25,7 @@ config = {"initialLocation": 0,
           }
 
 player = {"playerName": 'fields',
-          "playerIcon": 'handout/materials/playerIcon.png'}
+          "playerIcon": 'playerIcon.png'}
 
 pickle.dump(config, open('handout/materials/game.config', 'wb'))
 pickle.dump(player, open('handout/materials/player.config', 'wb'))
