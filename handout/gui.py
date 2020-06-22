@@ -97,11 +97,11 @@ class App:
             self.lap = self.lap + 1
 
         if self.lap in [0, 1]:
-            newLocation = self.player.location + dice % len(self.locations)
+            newLocation = (self.player.location + dice) % len(self.locations)
             self.movePlayer(newLocation)
             self.player.location = newLocation
         elif self.lap == 2:
-            newLocation = self.player.location + dice % len(self.locations)
+            newLocation = (self.player.location + dice) % len(self.locations)
             self.movePlayer(newLocation)
             self.player.location = newLocation
             self.showFinalExam()
@@ -115,7 +115,8 @@ class App:
         if isinstance(lattice, Chance):
             self.drawCard()
         elif isinstance(lattice, Site):
-            self.interactWithSite(lattice)
+            if not lattice.name == '起点':
+                self.interactWithSite(lattice)
 
     def movePlayer(self, newLocation):
         nSteps = self.parser.nSteps
@@ -152,7 +153,7 @@ class App:
             ys[-1] = yTo
             for x, y in zip(xs, ys):
                 self.playerSmallLabel.place(x=x, y=y)
-                time.sleep(pauseTime)
+                # time.sleep(pauseTime)
 
         self.playerSmallLabel.place(x=int(self.locations[self.player.location][0] *
                                           self.gameMapLabel['width']) + int(self.gameMapLabel.place_info()['x']),
@@ -166,8 +167,8 @@ class App:
         self.lattices = self.parser.latticesWithFinalExam
         self.locations = self.parser.locationsWithFinalExam
         self.sizes = self.parser.sizesWithFinalExam
-        self.updateMap()
-        self.infoLabel['text'] = self.truncateText(self.infoLabel['text'] + '\n期末考试出现了')
+        # self.updateMap()
+        # self.infoLabel['text'] = self.truncateText(self.infoLabel['text'] + '\n期末考试出现了')
 
     def enterNextGrade(self):
         index = self.parser.grades.index(self.player.grade)
@@ -183,17 +184,18 @@ class App:
             self.locations = self.parser.initialLocations
             self.sizes = self.parser.initialSizes
 
+            self.player.money = self.parser.initialMoney
+            self.player.time = self.parser.initialTime
+            self.player.spirit = self.parser.initialSpirit
+            self.player.knowledge = self.parser.initialKnowledge
+
             time.sleep(self.parser.pauseTime)
             self.updatePlayerInfo()
-            self.updateMap()
+            # self.updateMap()
             self.infoLabel['text'] = self.truncateText(self.infoLabel['text'] + '\n你在期末考试后进入了下一年级')
 
     def drawCard(self):
-        if len(self.parser.remainedChances) is 0:
-            self.parser.remainedChances = self.parser.chances
-
         [card] = random.sample(self.parser.remainedChances, 1)
-        self.parser.remainedChances.remove(card)
         self.infoLabel['text'] = self.truncateText(self.infoLabel['text'] + '\n你抽到的卡牌是:\n' + card['name'] +
                                                    '\n效果是:\n金钱: ' + ("+" + str(card['effect'][0]) if
                                                                     card['effect'][0] > 0 else str(card['effect'][0])) +
@@ -219,6 +221,10 @@ class App:
             newWindow.mainloop()
 
     def interactWithSite(self, site):
+        def act():
+            self.makeAction(site)
+            newWindow.destroy()
+
         if not site.name == '期末考试':
             self.infoLabel['text'] = self.truncateText(self.infoLabel['text'] + '\n' + site.name + '的效果是' +
                                                        '\n金钱: ' + ("+" + str(site.effect[0]) if
@@ -240,7 +246,7 @@ class App:
                 newWindow.geometry('300x50')
                 newWindow.title('选择动作')
                 confirmButton = tk.Button(newWindow, text="在" + site.name + site.action, relief=tk.FLAT,
-                                          command=lambda: self.makeAction(site))
+                                          command=act)
                 refuseButton = tk.Button(newWindow, text="不在" + site.name + site.action, relief=tk.FLAT,
                                          command=newWindow.destroy)
                 confirmButton.pack(side=tk.LEFT, fill=tk.Y, expand=tk.YES)
@@ -254,10 +260,10 @@ class App:
         for k in range(len(self.lattices)):
             self.latticeImages[k] = Image.open(self.parser.materialsPath + self.lattices[k].icon)
             self.latticeImages[k] = self.latticeImages[k].resize((int(self.gameMapLabel['width'] * self.sizes[k][0]),
-                                                                  int(self.gameMapLabel['height'] * self.sizes[k][1]),
-                                                                  Image.ANTIALIAS))
+                                                                  int(self.gameMapLabel['height'] * self.sizes[k][1])),
+                                                                  Image.ANTIALIAS)
             self.latticeIcons[k] = tk.PhotoImage(self.latticeImages[k])
-            self.latticeLabels[k]['image'] = self.latticeIcons[-1]
+            self.latticeLabels[k].image = self.latticeIcons[k]
             self.latticeLabels[k].place(x=int(self.gameMapLabel['width'] * self.locations[k][0]) +
                                           int(self.gameMapLabel.place_info()['x']),
                                         y=int(self.gameMapLabel['height'] * self.locations[k][1]) +
@@ -328,7 +334,7 @@ class App:
             return text[index + 1:]
 
     def endOfGame(self):
-        def showLines(event):
+        def showLines():
             for line in lines:
                 message['text'] = message['text'] + line + '\n'
                 time.sleep(self.parser.pauseTime)
@@ -371,23 +377,42 @@ class App:
         if '期中退课' in self.player.records.keys():
             if self.player.records['期中退课'] > 3:
                 lines = lines + "退课是你复旦生活中过不去的一道坎, 每个学期都退课让你成为了一个传说\n"
-        if self.player.records['旦苑小卖部'] + self.player.records['靠一点点续命'] + self.player.records['阿康的诱惑'] + \
-                self.player.records['五角场'] > 8:
+
+        plays = 0
+        if '旦苑小卖部' in self.player.records.keys():
+            plays = plays + self.player.records['旦苑小卖部']
+        if '靠一点点续命' in self.player.records.keys():
+            plays = plays + self.player.records['靠一点点续命']
+        if '阿康的诱惑' in self.player.records.keys():
+            plays = plays + self.player.records['阿康的诱惑']
+        if '五角场' in self.player.records.keys():
+            plays = plays + self.player.records['五角场']
+
+        if plays > 8:
             lines = lines + "甜食和烧烤的快乐是你无法拒绝的, 当然这也导致了四年间你疯狂增长的体重\n"
 
         lines = lines + "总而言之, 恭喜你顺利毕业, 祝贺你跻身百年复旦的星空, 日月光华中有你闪亮的眼睛, 你计划的秋天已褪去童话的色彩, 一个真实的现在可以开垦一万个美丽的未来"
         lines = lines.split('\n')
 
-        newWindow = tk.Tk()
-        newWindow.geometry('400x300')
-        message = tk.Message(newWindow, width=100)
+        newWindow = tk.Toplevel()
+        newWindow.geometry('400x550')
+        newWindow.title('毕业报告')
+        message = tk.Message(newWindow, width=200)
         message.pack(side=tk.TOP)
         button = tk.Button(newWindow, text="展示你的毕业报告", command=showLines)
         button.pack(side=tk.BOTTOM)
         newWindow.mainloop()
 
     def showPlayerInfo(self):
-        newWindow = tk.Tk()
+        def rename():
+            self.renamePlayer(playerName.get())
+            newWindow.destroy()
+
+        def modify():
+            self.modifyPlayerIcon()
+            newWindow.destroy()
+
+        newWindow = tk.Toplevel()
         newWindow.geometry('300x300')
 
         playerImage = Image.open(self.parser.materialsPath + self.parser.playerIcon)
@@ -401,16 +426,16 @@ class App:
         playerName.pack(side=tk.TOP)
 
         renameButton = tk.Button(newWindow, text="修改昵称",
-                                 command=lambda: exec('self.renamePlayer(playerName.get()); newWindow.destroy()'))
+                                 command=rename)
         renameButton.place(x=50, y=250)
         modifyIconButton = tk.Button(newWindow, text="修改头像",
-                                     command=lambda: exec('self.modifyPlayerIcon(); newWindow.destroy()'))
-        modifyIconButton.pack(x=200, y=250)
+                                     command=modify)
+        modifyIconButton.place(x=200, y=250)
 
         newWindow.mainloop()
 
     def modifyPlayerIcon(self):
-        newWindow = tk.Tk()
+        newWindow = tk.Toplevel()
         newWindow.withdraw()
 
         defaultDirectory = os.getcwd()
