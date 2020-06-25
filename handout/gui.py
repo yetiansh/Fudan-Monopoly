@@ -1,6 +1,9 @@
 import os
 import pickle
 import time
+import random
+
+import tkinter as tk
 from tkinter import filedialog
 
 from PIL import ImageTk, Image
@@ -339,11 +342,6 @@ class App:
                 message['text'] = message['text'] + line + '\n'
                 time.sleep(self.parser.pauseTime)
 
-        with open('handout/materials/gameRecord-' + self.player.name + time.strftime('%Y-%m-%d %H-%M-%S.dat'),
-                  'wb') as file:
-            pickle.dump(self.player.attributes, file)
-            pickle.dump(self.player.records, file)
-
         records = sorted(self.player.records.items(), key=lambda k: k[1])
         knowledge = sum([result[3] for result in self.player.attributes])
         spirit = sum([result[2] for result in self.player.attributes])
@@ -392,6 +390,13 @@ class App:
             lines = lines + "甜食和烧烤的快乐是你无法拒绝的, 当然这也导致了四年间你疯狂增长的体重\n"
 
         lines = lines + "总而言之, 恭喜你顺利毕业, 祝贺你跻身百年复旦的星空, 日月光华中有你闪亮的眼睛, 你计划的秋天已褪去童话的色彩, 一个真实的现在可以开垦一万个美丽的未来"
+
+        with open('handout/records/gameRecord-' + self.player.name + time.strftime('%Y-%m-%d %H-%M-%S.dat'),
+                  'wb') as file:
+            pickle.dump(self.player.attributes, file)
+            pickle.dump(self.player.records, file)
+            pickle.dump(lines, file)
+
         lines = lines.split('\n')
 
         newWindow = tk.Toplevel()
